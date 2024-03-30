@@ -4,49 +4,51 @@ What happens behind the scenes when we type google.com in a browser?
 
 **Table of Contents**
 
-- [当你刚输入baidu的b字母时](#baidu-b-key-is-pressed)
-- [When you hit 'Enter'](#when-you-hit-enter)
-- [Parse the URL](#parse-the-url)
-- [Check HSTS list (deprecated)](#check-hsts-list-deprecated)
-- [DNS lookup](#dns-lookup)
-- [Opening of a socket + TLS handshake](#opening-of-a-socket--tls-handshake)
-- [HTTP protocol](#http-protocol)
-- [HTTP Server Request Handle](#http-server-request-handle)
-- [Server Response](#server-response)
-- [Behind the scenes of the Browser](#behind-the-scenes-of-the-browser)
-- [The browser's high level structure](#the-browsers-high-level-structure)
-- [Rendering Engine](#rendering-engine)
-- [The Main flow](#the-main-flow)
-- [Parsing Basics](#parsing-basics)
-- [DOM Tree](#dom-tree)
-  - [Why is the DOM slow?](#why-is-the-dom-slow)
-- [Render Tree](#render-tree)
-- [Render tree's relation to the DOM tree](#render-trees-relation-to-the-dom-tree)
-- [CSS Parsing](#css-parsing)
-- [Layout](#layout)
-- [Painting](#painting)
-- [Trivia](#trivia)
-  - [The birth of the web](#the-birth-of-the-web)
+- [How Web Works](#how-web-works)
+  - [当你刚输入baidu的b字母时](#当你刚输入baidu的b字母时)
+  - [当你按下“Enter”键时](#当你按下enter键时)
+  - [Parse the URL](#parse-the-url)
+  - [Check HSTS list (deprecated)](#check-hsts-list-deprecated)
+  - [DNS lookup](#dns-lookup)
+  - [Opening of a socket + TLS handshake](#opening-of-a-socket--tls-handshake)
+  - [HTTP protocol](#http-protocol)
+  - [HTTP Server Request Handle](#http-server-request-handle)
+  - [Server Response](#server-response)
+  - [Behind the scenes of the Browser](#behind-the-scenes-of-the-browser)
+  - [The browser's high level structure](#the-browsers-high-level-structure)
+  - [Rendering Engine](#rendering-engine)
+  - [The Main flow](#the-main-flow)
+  - [Parsing Basics](#parsing-basics)
+  - [DOM Tree](#dom-tree)
+    - [Why is the DOM slow?](#why-is-the-dom-slow)
+  - [Render Tree](#render-tree)
+  - [Render tree's relation to the DOM tree](#render-trees-relation-to-the-dom-tree)
+  - [CSS Parsing](#css-parsing)
+  - [Layout](#layout)
+  - [Painting](#painting)
+  - [Trivia](#trivia)
+    - [The birth of the web](#the-birth-of-the-web)
 
 ## 当你刚输入baidu的b字母时
+
 当你在浏览器输入b键的时候，浏览器输入栏接收到信息后就开始启动自动补全机制，根据你使用的浏览器的算法，以及你是否处于隐私模式或无痕浏览模式，浏览器会在地址栏下方的下拉列表中为你呈现各种建议。这些算法中的大多数会基于搜索历史和书签来优先推荐结果。虽然你打算输入的是“baidu.com”，这些建议似乎并不重要，但在你完成输入之前，大量代码已经在后台运行，并根据你每次按键来优化这些建议。甚至在你完全输入之前，浏览器就可能已经建议你输入“baidu.com”了。
 
-## When you hit 'Enter'
+## 当你按下“Enter”键时
 
-To pick a zero point, let's choose the Enter key on the keyboard hitting the bottom of its range. At this point, an electrical circuit specific to the enter key is closed (either directly or capacitively). This allows a small amount of current to flow into the logic circuitry of the keyboard, which scans the state of each key switch, debounces the electrical noise of the rapid intermittent closure of the switch, and converts it to a keycode integer, in this case 13. The keyboard controller then encodes the keycode for transport to the computer. This is now almost universally over a Universal Serial Bus (USB) or Bluetooth connection.
+按下键盘上的Enter键，敲击其范围的底部。此时，回车键专用的电路闭合（直接闭合或电容闭合）。这允许少量电流流入键盘的逻辑电路，该逻辑电路扫描每个键开关的状态，消除开关的快速间歇闭合的电噪声，并将其转换为键码整数，在这种情况下为13。键盘控制器然后对键代码进行编码，以便传输到计算机。现在，这几乎是通过通用串行总线（USB）或蓝牙连接实现的。
 
-In the case of the USB keyboard:
-* The keycode generated is stored by internal keyboard circuitry memory in a register called "endpoint".
-* The host USB controller polls that "endpoint" every ~10ms, so it gets the keycode value stored on it.
-* This value goes to the USB SIE (Serial Interface Engine) sent at a maximum speed of 1.5 Mb/s (USB 2.0).
-* This serial signal is then decoded at the computer's host USB controller, and interpreted by the computer's Human Interface Device (HID) universal keyboard device driver.
-* The value of the key is then passed into the operating system's hardware abstraction layer.
+如果是USB键盘：
+* 生成的键代码由内部键盘电路存储器存储在一个名为“端点”的寄存器中。
+* 主机USB控制器每隔约10ms轮询一次该“端点”，因此它会获得存储在其上的密钥代码值。
+* 该值进入以1.5 Mb/s（USB 2.0）的最大速度发送的USB SIE（串行接口引擎）。
+* 然后，该串行信号在计算机的主机USB控制器处被解码，并由计算机的人机接口设备（HID）通用键盘设备驱动程序进行解释。
+* 然后，密钥的值被传递到操作系统的硬件抽象层。
 
-In the case of touch screen keyboards:
-* When the user puts their finger on a modern capacitive touch screen, a tiny amount of current gets transferred to the finger. This completes the circuit through the electrostatic field of the conductive layer and creates a voltage drop at that point on the screen. The screen controller then raises an interrupt reporting the coordinate of the 'click'.
-* Then the mobile OS notifies the current focused application of a click event in one of its GUI elements (which now is the virtual keyboard application buttons).
-* The virtual keyboard can now raise a software interrupt for sending a 'key pressed' message back to the OS.
-* This interrupt notifies the current focused application of a 'key pressed' event.
+对于触摸屏键盘：
+* 当用户将手指放在现代电容式触摸屏上时，少量电流会转移到手指上。这通过导电层的静电场完成电路，并在屏幕上的该点产生电压降。屏幕控制器随后引发一个中断，报告“点击”的坐标。
+* 然后，移动操作系统在其GUI元素之一（现在是虚拟键盘应用程序按钮）中向当前关注的应用程序通知点击事件。
+* 虚拟键盘现在可以引发软件中断，以便将“按键”消息发送回操作系统。
+* 此中断会将“按键按下”事件通知当前关注的应用程序。
 
 ## Parse the URL
 
