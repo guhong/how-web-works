@@ -4,7 +4,7 @@ What happens behind the scenes when we type google.com in a browser?
 
 **Table of Contents**
 
-- [Google's 'g' key is pressed](#googles-g-key-is-pressed)
+- [当你刚输入baidu的b字母时](#baidu-b-key-is-pressed)
 - [When you hit 'Enter'](#when-you-hit-enter)
 - [Parse the URL](#parse-the-url)
 - [Check HSTS list (deprecated)](#check-hsts-list-deprecated)
@@ -28,9 +28,8 @@ What happens behind the scenes when we type google.com in a browser?
 - [Trivia](#trivia)
   - [The birth of the web](#the-birth-of-the-web)
 
-## Google's 'g' key is pressed
-
-When you just press "g", the browser receives the event and the entire auto-complete machinery kicks into high gear. Depending on your browser's algorithm and if you are in private/incognito mode or not various suggestions will be presented to you in the dropbox below the URL bar. Most of these algorithms prioritize results based on search history and bookmarks. You are going to type "google.com" so none of it matters, but a lot of code will run before you get there and the suggestions will be refined with each key press. It may even suggest "google.com" before you type it.
+## 当你刚输入baidu的b字母时
+当你在浏览器输入b键的时候，浏览器输入栏接收到信息后就开始启动自动补全机制，根据你使用的浏览器的算法，以及你是否处于隐私模式或无痕浏览模式，浏览器会在地址栏下方的下拉列表中为你呈现各种建议。这些算法中的大多数会基于搜索历史和书签来优先推荐结果。虽然你打算输入的是“baidu.com”，这些建议似乎并不重要，但在你完成输入之前，大量代码已经在后台运行，并根据你每次按键来优化这些建议。甚至在你完全输入之前，浏览器就可能已经建议你输入“baidu.com”了。
 
 ## When you hit 'Enter'
 
